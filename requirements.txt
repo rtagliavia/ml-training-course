@@ -1,6 +1,5 @@
 scikit-learn>=1.3
 pandas>=2.0
 numpy>=1.24
-openai>=1.0
-instructor>=1.0
+xai-sdk
 pydantic>=2.0

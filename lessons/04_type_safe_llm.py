@@ -1,19 +1,18 @@
-"""Type-safe LLM classification example.
-Requires OPENAI_API_KEY in env.
-Install: pip install openai instructor pydantic
+"""Type-safe LLM classification with Grok (xAI).
+Requires XAI_API_KEY in env.
+pip install xai-sdk pydantic
 """
 import os
 from typing import Literal
-import instructor
-from openai import OpenAI
 from pydantic import BaseModel
+from xai_sdk import Client
+from xai_sdk.chat import user
 
-# Set your key: export OPENAI_API_KEY=sk-...
-if not os.getenv("OPENAI_API_KEY"):
-    print("Set OPENAI_API_KEY to run this example.")
+if not os.getenv("XAI_API_KEY"):
+    print("Set XAI_API_KEY to run this example.")
     exit(0)
 
-client = instructor.from_openai(OpenAI())
+client = Client(api_key=os.getenv("XAI_API_KEY"))
 
 class Sentiment(BaseModel):
     label: Literal["positive", "negative", "neutral"]
@@ -21,10 +20,13 @@ class Sentiment(BaseModel):
 
 text = "The product arrived late and was damaged."
 
-result = client.chat.completions.create(
-    model="gpt-4o-mini",
-    response_model=Sentiment,
-    messages=[{"role": "user", "content": f"Classify sentiment: {text}"}]
+chat = client.chat.create(
+    model="grok-4.7",
+    response_format=Sentiment,
 )
+chat.append(user(f"Classify sentiment of: {text}"))
+
+response = chat.sample()
+result = Sentiment.model_validate_json(response.content)
 print(result)
-print("Type-safe output:", result.label)
+print("Type-safe Grok output:", result.label)
